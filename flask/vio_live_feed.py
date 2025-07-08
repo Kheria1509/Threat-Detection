@@ -1,4 +1,4 @@
-from flask import Flask, Response
+from flask import Flask,render_template,Response
 from ultralytics import YOLO
 import numpy as np
 from keras.models import load_model
@@ -13,7 +13,7 @@ from collections import deque
 
 app = Flask(__name__)
    
-
+cap = cv2.VideoCapture(0)
 # Function to generate live video feed
 def generate_feed():
     print("Loading model ...")
@@ -21,7 +21,7 @@ def generate_feed():
     Q = deque(maxlen=128)
 
     
-    cap = cv2.VideoCapture(0)
+    
     cap.set(3, 640)
     cap.set(4, 480)
     
@@ -58,8 +58,8 @@ def generate_feed():
         Q.append(preds)
 
         # Perform prediction averaging over the current history of previous predictions
-        results = np.array(Q).mean(axis=0)
-        label = 1 if results > 0.60 else 0
+        resultsvio = np.array(Q).mean(axis=0)
+        label = 1 if resultsvio > 0.60 else 0
       
         
         for i, (model, classNames) in enumerate(zip(models, classNames_list)):
@@ -110,13 +110,19 @@ def generate_feed():
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + buffer.tobytes() + b'\r\n')
         
-
-    cap.release()
+generate_feed()
+    
 
 # API endpoint to serve live images
 @app.route('/live_feed')
 def live_feed():
     return Response(generate_feed(), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)
