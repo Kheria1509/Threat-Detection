@@ -3,7 +3,8 @@ import cv2
 import math
 
 # Start webcam
-cap = cv2.VideoCapture('Violence_house.mp4')
+# cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(0)
 cap.set(3, 640)
 cap.set(4, 480)
 
@@ -49,7 +50,7 @@ while True:
             thickness = 2
 
             # Set the rectangle color based on class label
-            if  confidence>0.70 :
+            if  confidence>0.50 :
                 color = (0, 0, 255)  # Red for masked person
                 # total_correct += 1  # Increment correct count for masked person
                 cv2.rectangle(img, (x1, y1), (x2, y2), color, 3)

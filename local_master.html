@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Local Master - Live Stream</title>
+    <style>
+        #video { width: 640px; height: 480px; }
+        #detections { margin-top: 10px; }
+        #notifications { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Local Master - Live Stream</h1>
+    <img id="video" src="" alt="Live Stream">
+    <div id="detections"></div>
+    <div id="notifications"></div>
+    <button id="acknowledge-button" style="display: none;">Acknowledge Threat</button>
+
+    <script>
+        const ws = new WebSocket('ws://localhost:8765/local_master');
+        const acknowledgeButton = document.getElementById('acknowledge-button');
+        const detectionsDiv = document.getElementById('detections');
+        const notificationsDiv = document.getElementById('notifications');
+
+        ws.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            if (data.frame) {
+                document.getElementById('video').src = 'data:image/jpeg;base64,' + data.frame;
+            }
+            if (data.detections) {
+                detectionsDiv.innerHTML = '<h3>Detections:</h3>';
+                data.detections.forEach(detection => {
+                    detectionsDiv.innerHTML += `<p>${detection.class} - ${detection.confidence.toFixed(2)}</p>`;
+});
+}
+if (data.threat_detected) {
+acknowledgeButton.style.display = 'block';
+notificationsDiv.textContent = 'Threat detected! Please acknowledge.';
+// Play alarm
+new Audio('alarm.mp3').play(); // Replace with path to your alarm sound file
+} else {
+acknowledgeButton.style.display = 'none';
+notificationsDiv.textContent = '';
+}
+};
+acknowledgeButton.onclick = function() {
+        ws.send('acknowledge');
+        acknowledgeButton.style.display = 'none';
+        notificationsDiv.textContent = 'Threat acknowledged.';
+    };
+</script>
+</body>
+</html>

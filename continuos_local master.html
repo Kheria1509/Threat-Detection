@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Threat Detection Stream</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        #video-container {
+            position: relative;
+            width: 640px;
+            height: 480px;
+            margin-bottom: 20px;
+            background-color: #000;
+            overflow: hidden;
+        }
+
+        #video-frame {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        #alert-banner {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 10px;
+            background-color: rgba(255, 0, 0, 0.7);
+            color: #fff;
+            text-align: center;
+            font-weight: bold;
+            display: none;
+        }
+
+        #threat-info {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            text-align: center;
+            font-weight: bold;
+            display: none;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            background-color: #007bff;
+            color: #fff;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div id="video-container">
+        <img id="video-frame" alt="Video Stream" src="" />
+        <div id="alert-banner">Threat Detected!</div>
+        <div id="threat-info"></div>
+    </div>
+    <button id="acknowledge-button" onclick="acknowledgeThreat()">Acknowledge Threat</button>
+
+    <script>
+        const socket = new WebSocket('ws://localhost:8765/local_master');
+        const videoFrame = document.getElementById('video-frame');
+        const alertBanner = document.getElementById('alert-banner');
+        const threatInfo = document.getElementById('threat-info');
+        const acknowledgeButton = document.getElementById('acknowledge-button');
+
+        let currentThreat = null;
+
+        socket.onmessage = function (event) {
+            const data = JSON.parse(event.data);
+
+            // Update video frame
+            videoFrame.src = 'data:image/jpeg;base64,' + data.frame;
+
+            // Check for alerts
+            if (data.detections.length > 0) {
+                // Show the alert banner
+                alertBanner.style.display = 'block';
+                playAlarmSound();
+
+                // Update threat info
+                let threatText = 'Detected Threats:\n';
+                data.detections.forEach(detection => {
+                    threatText += `${detection.class} ${detection.confidence.toFixed(2)}\n`;
+                });
+                threatInfo.textContent = threatText;
+                threatInfo.style.display = 'block';
+
+                // Set current threat
+                currentThreat = data.detections[0].class;  // or you can choose a different approach to handle multiple threats
+            }
+        };
+
+        function playAlarmSound() {
+            const audio = new Audio('alarm.mp3'); // Path to your alarm sound file
+            audio.play();
+        }
+
+        function acknowledgeThreat() {
+            if (currentThreat) {
+                alertBanner.style.display = 'none';
+                threatInfo.style.display = 'none';
+                socket.send(JSON.stringify({ acknowledge: true, threat: currentThreat }));
+                currentThreat = null; // Clear current threat
+            }
+        }
+    </script>
+</body>
+</html>
