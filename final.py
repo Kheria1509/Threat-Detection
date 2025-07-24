@@ -11,8 +11,10 @@ import time
 import winsound  # Use for playing sound on Windows
 
 # Load models
-weapon_model = YOLO(r'M:/mask/detect/threat_train/weights/best.pt')
+weapon_model = YOLO(r'detect\threat_train\weights\best.pt')
 fire_smoke_model = YOLO(r'detect/fire_smoke_train/weights/best.pt')
+# detect\fire_smoke_train\weights\best.pt
+# detect\threat_train\weights\best.pt
 
 # Object classes
 weapon_class_names = ["violence", "gun", "knife"]
@@ -156,7 +158,7 @@ async def video_stream(websocket, path):
                 if threat_detected and not threat_acknowledged:
                     play_alarm()  # Play alarm when a threat is detected
                     # Start a timeout thread to notify regional master if not acknowledged
-                    Thread(target=threat_timeout).start()
+                    asyncio.create_task(threat_timeout())
 
             # Notify regional master
             if clients["regional_master"]:
@@ -200,10 +202,41 @@ async def handle_acknowledgment(websocket, path):
                 await clients["regional_master"].send(json.dumps({"message": "Threat acknowledged"}))
 
 # Start the WebSocket servers
-start_server = websockets.serve(video_stream, "localhost", 8765)
-acknowledge_server = websockets.serve(handle_acknowledgment, "localhost", 8766)
+async def main():
+    try:
+        start_server = await websockets.serve(video_stream, "localhost", 8765)
+        acknowledge_server = await websockets.serve(handle_acknowledgment, "localhost", 8766)
+        print("WebSocket servers started. Press Ctrl+C to stop.")
+        
+        # Keep the servers running
+        while True:
+            await asyncio.sleep(1)
+            
+    except KeyboardInterrupt:
+        print("\nShutting down servers...")
+        # Clean up resources
+        for client in clients.values():
+            if client:
+                await client.close()
+        
+        # Close the servers
+        start_server.close()
+        acknowledge_server.close()
+        await start_server.wait_closed()
+        await acknowledge_server.wait_closed()
+        print("Servers shut down successfully.")
+    
+    except Exception as e:
+        print(f"An error occurred: {e}")
+    
+    finally:
+        # Ensure everything is cleaned up
+        for client in clients.values():
+            if client:
+                await client.close()
 
-# Run the servers
-asyncio.get_event_loop().run_until_complete(start_server)
-asyncio.get_event_loop().run_until_complete(acknowledge_server)
-asyncio.get_event_loop().run_forever()
+if __name__ == "__main__":
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("\nApplication stopped by user.")
