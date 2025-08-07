@@ -17,6 +17,7 @@
 
     <script>
         const ws = new WebSocket('ws://localhost:8765/local_master');
+        const ackWs = new WebSocket('ws://localhost:8766');
         const acknowledgeButton = document.getElementById('acknowledge-button');
         const detectionsDiv = document.getElementById('detections');
         const notificationsDiv = document.getElementById('notifications');
@@ -43,13 +44,8 @@ notificationsDiv.textContent = '';
 }
 };
 acknowledgeButton.onclick = function() {
-        // The server (final.py) listens for acknowledgements on port 8766
-        const ackWs = new WebSocket('ws://localhost:8766');
-        ackWs.onopen = () => {
-            // The server expects a JSON message with an 'action' key
-            ackWs.send(JSON.stringify({ action: 'acknowledge_threat' }));
-            ackWs.close();
-        };
+        // Send acknowledgment through the existing WebSocket connection
+        ackWs.send(JSON.stringify({ action: 'acknowledge_threat' }));
         acknowledgeButton.style.display = 'none';
         notificationsDiv.textContent = 'Threat acknowledged.';
     };

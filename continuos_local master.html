@@ -84,6 +84,7 @@
 
     <script>
         const socket = new WebSocket('ws://localhost:8765/local_master');
+        const ackSocket = new WebSocket('ws://localhost:8766');
         const videoFrame = document.getElementById('video-frame');
         const alertBanner = document.getElementById('alert-banner');
         const threatInfo = document.getElementById('threat-info');
@@ -125,7 +126,8 @@
             if (currentThreat) {
                 alertBanner.style.display = 'none';
                 threatInfo.style.display = 'none';
-                socket.send(JSON.stringify({ acknowledge: true, threat: currentThreat }));
+                // Send acknowledgment through the dedicated acknowledgment socket
+                ackSocket.send(JSON.stringify({ action: 'acknowledge_threat' }));
                 currentThreat = null; // Clear current threat
             }
         }

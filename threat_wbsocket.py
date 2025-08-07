@@ -10,7 +10,7 @@ import time
 import winsound  # Use for playing sound on Windows
 
 # Load models
-weapon_model = YOLO(r'M:/mask/detect/threat_train/weights/best.pt')
+weapon_model = YOLO(r'detect/threat_train/weights/best.pt')
 fire_smoke_model = YOLO(r'detect/fire_smoke_train/weights/best.pt')
 
 # Object classes

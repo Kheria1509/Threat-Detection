@@ -85,8 +85,8 @@ def sequence_prediction_on_frames(frames):
 def generate_feed():
     global frames
 
-    cap = cv2.VideoCapture("C:/Users/amank/Desktop/thread_detection_PR/EyeonGithub/FIGHT_PRACTICE.mp4")
-
+    # cap = cv2.VideoCapture("C:/Users/amank/Desktop/thread_detection_PR/EyeonGithub/FIGHT_PRACTICE.mp4")
+    cap = cv2.VideoCapture(0)
 
     cap.set(3, 640)
     cap.set(4, 480)

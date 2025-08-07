@@ -17,19 +17,21 @@ cap = cv2.VideoCapture(0)
 # Function to generate live video feed
 def generate_feed():
     print("Loading model ...")
-    model_vio = load_model("./detect/modelnew.h5")
-    Q = deque(maxlen=128)
+    model_vio = load_model(r"C:\Users\amank\Desktop\thread_detection_PR\EyeonGithub\detect\modelnew.h5")
 
+    print("Violence detection model loaded successfully")
+    Q = deque(maxlen=128)
+    base_path = "C:/Users/amank/Desktop/thread_detection_PR/EyeonGithub"
     
     
     cap.set(3, 640)
     cap.set(4, 480)
     
     model_paths = [
-        'detect/train/weights/best.pt',
-        'detect/weapondetction1_train/weights/best.pt',
-        'detect/weapondetction1_train/weights/best.pt',
-        'detect/fire_smoke_train/weights/best.pt'
+         f"{base_path}/detect/train/weights/best.pt",
+        f"{base_path}/detect/weapondetction1_train/weights/best.pt",
+        f"{base_path}/detect/weapondetction1_train/weights/best.pt",
+        f"{base_path}/detect/fire_smoke_train/weights/best.pt"
     ]
     
     models = [YOLO(path) for path in model_paths]

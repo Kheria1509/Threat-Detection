@@ -14,8 +14,13 @@ import pygame
 pygame.mixer.init()
 
 # Load models
-weapon_model = YOLO(r'M:/mask/detect/threat_train/weights/best.pt')
+print("Loading weapon model...")
+weapon_model = YOLO(r'detect/threat_train/weights/best.pt')
+print("Weapon model loaded successfully.")
+
+print("Loading fire and smoke model...")
 fire_smoke_model = YOLO(r'detect/fire_smoke_train/weights/best.pt')
+print("Fire and smoke model loaded successfully.")
 
 # Object classes
 weapon_class_names = ["violence", "gun", "knife"]
@@ -23,7 +28,7 @@ fire_smoke_class_names = ["fire", "smoke"]
 
 # Thresholds and limits
 CONTINUOUS_DETECTION_THRESHOLD = 10
-THREAT_ACKNOWLEDGMENT_TIMEOUT = 10  # seconds
+THREAT_ACKNOWLEDGMENT_TIMEOUT = 5  # seconds
 THREAT_BURST_LIMIT = 3
 THREAT_BURST_TIMEFRAME = timedelta(minutes=5)
 
@@ -37,9 +42,9 @@ local_master = None
 global_master = None
 
 # Email configuration
-EMAIL_SENDER = "your_email@example.com"
-EMAIL_PASSWORD = "your_email_password"
-EMAIL_RECEIVER = "alert_receiver@example.com"
+EMAIL_SENDER = "amankheria09@gmail.com"
+EMAIL_PASSWORD = "btpc scwn ydrr clck"
+EMAIL_RECEIVER = "22bcs025@iiitdmj.ac.in"
 
 # Function to send an email alert
 def send_email_alert(threat_type):
@@ -118,7 +123,12 @@ async def video_stream(websocket, path):
         global_master = websocket
 
     # Open webcam
-    cap = cv2.VideoCapture(0)
+    # cap = cv2.VideoCapture('Explosion.mp4')
+    cap = cv2.VideoCapture('FIGHT_PRACTICE.mp4')
+
+    # cap = cv2.VideoCapture(0)
+# cap = cv2.VideoCapture('Gun.mp4')
+# cap = cv2.VideoCapture('Brandon.mp4')
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 
@@ -259,7 +269,7 @@ fire_smoke_class_names = ["fire", "smoke"]
 
 # Thresholds and limits
 CONTINUOUS_DETECTION_THRESHOLD = 10
-THREAT_ACKNOWLEDGMENT_TIMEOUT = 10  # seconds
+THREAT_ACKNOWLEDGMENT_TIMEOUT = 5 # seconds
 THREAT_BURST_LIMIT = 3
 THREAT_BURST_TIMEFRAME = timedelta(minutes=5)
 
@@ -273,9 +283,9 @@ local_master = None
 global_master = None
 
 # Email configuration
-EMAIL_SENDER = "your_email@example.com"
-EMAIL_PASSWORD = "your_email_password"
-EMAIL_RECEIVER = "alert_receiver@example.com"
+EMAIL_SENDER = "amankheria09@gmail.com"
+EMAIL_PASSWORD = "btpc scwn ydrr clck"
+EMAIL_RECEIVER = "22bcs025@iiitdmj.ac.in"
 
 # Function to send an email alert
 def send_email_alert(threat_type):
