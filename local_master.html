@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Threat Detection System - Local Master</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .header {
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .system-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .system-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-radius: 20px;
+            font-size: 0.875rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #22c55e;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            min-height: calc(100vh - 100px);
+        }
+
+        .video-section {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 16px;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .video-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .video-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #f1f5f9;
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+
+        #video {
+            width: 100%;
+            height: auto;
+            display: block;
+            max-height: 500px;
+            object-fit: contain;
+        }
+
+        .video-overlay {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            color: #22c55e;
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 16px;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .card-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            border-radius: 6px;
+            color: white;
+            font-size: 14px;
+        }
+
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #f1f5f9;
+        }
+
+        .detections-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .detection-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 8px;
+            border-left: 3px solid #3b82f6;
+        }
+
+        .detection-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .detection-class {
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+
+        .detection-confidence {
+            font-size: 0.875rem;
+            color: #94a3b8;
+        }
+
+        .threat-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .threat-high {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .threat-medium {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fcd34d;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .no-detections {
+            text-align: center;
+            color: #64748b;
+            font-style: italic;
+            padding: 2rem;
+        }
+
+        .alert-section {
+            position: relative;
+        }
+
+        .alert-critical {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.1));
+            border: 1px solid rgba(239, 68, 68, 0.5);
+            animation: alertPulse 2s infinite;
+        }
+
+        @keyframes alertPulse {
+            0%, 100% { 
+                border-color: rgba(239, 68, 68, 0.5);
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+            }
+            50% { 
+                border-color: rgba(239, 68, 68, 0.8);
+                box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+            }
+        }
+
+        .alert-message {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #fca5a5;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .acknowledge-button {
+            width: 100%;
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .acknowledge-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .acknowledge-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(220, 38, 38, 0.3);
+        }
+
+        .acknowledge-button:hover::before {
+            left: 100%;
+        }
+
+        .acknowledge-button:active {
+            transform: translateY(0);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .stat-item {
+            background: rgba(15, 23, 42, 0.5);
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #3b82f6;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: #94a3b8;
+            margin-top: 0.25rem;
+        }
+
+        .connection-indicator {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: rgba(30, 41, 59, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 1rem;
+            border-radius: 12px;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            z-index: 50;
+        }
+
+        @media (max-width: 1024px) {
+            .main-container {
+                grid-template-columns: 1fr;
+                padding: 1rem;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">🛡️</div>
+                <h1 class="system-title">Threat Detection System</h1>
+            </div>
+            <div class="system-status">
+                <div class="status-dot"></div>
+                <span>System Online</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <section class="video-section">
+            <div class="video-header">
+                <h2 class="video-title">Live Video Feed - Local Master</h2>
+            </div>
+            <div class="video-container">
+                <img id="video" src="" alt="Live Stream">
+                <div class="video-overlay">
+                    🔴 LIVE
+                </div>
+            </div>
+        </section>
+
+        <aside class="sidebar">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">🎯</div>
+                    <h3 class="card-title">Active Detections</h3>
+                </div>
+                <div id="detections" class="detections-list">
+                    <div class="no-detections">No threats detected</div>
+                </div>
+            </div>
+
+            <div id="alert-card" class="card alert-section" style="display: none;">
+                <div class="card-header">
+                    <div class="card-icon">⚠️</div>
+                    <h3 class="card-title">Threat Alert</h3>
+                </div>
+                <div class="alert-message" id="alert-message">
+                    CRITICAL THREAT DETECTED
+                </div>
+                <button id="acknowledge-button" class="acknowledge-button">
+                    Acknowledge Threat
+                </button>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">📊</div>
+                    <h3 class="card-title">System Statistics</h3>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" id="detection-count">0</div>
+                        <div class="stat-label">Total Detections</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="threat-count">0</div>
+                        <div class="stat-label">Threat Events</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <div class="connection-indicator" id="connection-status">
+        <div class="status-dot"></div>
+        <span>Connected to Server</span>
+    </div>
+
+    <script>
+        let detectionCount = 0;
+        let threatCount = 0;
+
+        const ws = new WebSocket('ws://localhost:8765/local_master');
+        const ackWs = new WebSocket('ws://localhost:8766');
+
+        const acknowledgeButton = document.getElementById('acknowledge-button');
+        const detectionsDiv = document.getElementById('detections');
+        const alertCard = document.getElementById('alert-card');
+        const alertMessage = document.getElementById('alert-message');
+        const connectionStatus = document.getElementById('connection-status');
+        const detectionCountEl = document.getElementById('detection-count');
+        const threatCountEl = document.getElementById('threat-count');
+
+        function updateConnectionStatus(isConnected) {
+            const statusDot = connectionStatus.querySelector('.status-dot');
+            statusDot.style.background = isConnected ? '#22c55e' : '#ef4444';
+            connectionStatus.querySelector('span').textContent = isConnected ? 'Connected to Server' : 'Connection Lost';
+        }
+
+        function updateDetections(detections) {
+            detectionCount += detections.length;
+            detectionCountEl.textContent = detectionCount;
+
+            detectionsDiv.innerHTML = '';
+            detections.forEach(detection => {
+                const threatLevel = detection.confidence > 0.8 ? 'high' : 'medium';
+                const detectionElement = document.createElement('div');
+                detectionElement.className = 'detection-item';
+                detectionElement.innerHTML = `
+                    <div class="detection-info">
+                        <div class="detection-class">${detection.class}</div>
+                        <div class="detection-confidence">Confidence: ${(detection.confidence * 100).toFixed(1)}%</div>
+                    </div>
+                    <div class="threat-badge threat-${threatLevel}">${threatLevel}</div>
+                `;
+                detectionsDiv.appendChild(detectionElement);
+            });
+        }
+
+        function handleThreatAlert(threatDetected) {
+            if (threatDetected) {
+                threatCount++;
+                threatCountEl.textContent = threatCount;
+
+                alertCard.style.display = 'block';
+                alertCard.classList.add('alert-critical');
+                alertMessage.textContent = 'CRITICAL THREAT DETECTED - IMMEDIATE ACTION REQUIRED';
+
+                try {
+                    new Audio('alarm.mp3').play().catch(e => console.log('Audio not available'));
+                } catch (e) {
+                    console.log('Audio playback failed');
+                }
+            } else {
+                alertCard.style.display = 'none';
+                alertCard.classList.remove('alert-critical');
+            }
+        }
+
+        ws.onopen = function() {
+            updateConnectionStatus(true);
+        };
+
+        ws.onclose = function() {
+            updateConnectionStatus(false);
+        };
+
+        ws.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+
+            if (data.frame) {
+                document.getElementById('video').src = 'data:image/jpeg;base64,' + data.frame;
+            }
+
+            if (data.detections && data.detections.length > 0) {
+                updateDetections(data.detections);
+            } else {
+                detectionsDiv.innerHTML = '<div class="no-detections">No threats detected</div>';
+            }
+
+            handleThreatAlert(data.threat_detected);
+        };
+
+        acknowledgeButton.onclick = function() {
+            ackWs.send(JSON.stringify({ action: 'acknowledge_threat' }));
+            alertCard.style.display = 'none';
+            alertCard.classList.remove('alert-critical');
+            alertMessage.textContent = 'Threat acknowledged - Monitoring resumed';
+
+            setTimeout(() => {
+                alertMessage.textContent = 'CRITICAL THREAT DETECTED';
+            }, 3000);
+        };
+
+        ackWs.onopen = function() {
+            console.log('Acknowledgment WebSocket connected');
+        };
+
+        ackWs.onclose = function() {
+            console.log('Acknowledgment WebSocket disconnected');
+        };
+    </script>
+</body>
+</html>

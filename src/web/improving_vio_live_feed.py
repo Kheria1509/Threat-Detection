@@ -19,22 +19,35 @@ resultsvio=[]
 results=[]
 def generate_feed():
     print("Loading model ...")
-    model_vio = load_model("./detect/modelnew.h5")
-    Q = deque(maxlen=128)
+    base_path = "C:/Users/amank/Desktop/thread_detection_PR/EyeonGithub"
+    try:
+        model_vio = load_model(f"{base_path}/detect/modelnew.h5")
+        print("Violence detection model loaded successfully")
+    except Exception as e:
+        print(f"Error loading violence detection model: {str(e)}")
+        return
 
-    
+    Q = deque(maxlen=128)
     
     cap.set(3, 640)
     cap.set(4, 480)
     
     model_paths = [
-        'detect/train/weights/best.pt',
-        'detect/weapondetction1_train/weights/best.pt',
-        'detect/weapondetction1_train/weights/best.pt',
-        'detect/fire_smoke_train/weights/best.pt'
+        f"{base_path}/detect/train/weights/best.pt",
+        f"{base_path}/detect/weapondetction1_train/weights/best.pt",
+        f"{base_path}/detect/weapondetction1_train/weights/best.pt",
+        f"{base_path}/detect/fire_smoke_train/weights/best.pt"
     ]
     
-    models = [YOLO(path) for path in model_paths]
+    models = []
+    for path in model_paths:
+        try:
+            model = YOLO(path)
+            models.append(model)
+            print(f"Successfully loaded model: {path}")
+        except Exception as e:
+            print(f"Error loading model {path}: {str(e)}")
+            return
 
     classNames_list = [
         ["masked", "person", "masked"],
@@ -43,6 +56,7 @@ def generate_feed():
         ["fire", "smoke"]
     ]
 
+    print("All models loaded successfully")
     while True:
         global resultsvio
         global results

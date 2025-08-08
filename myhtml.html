@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Video Stream</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        #videoStream {
+            width: 640px;
+            height: 480px;
+            border: 1px solid #ddd;
+            margin-bottom: 10px;
+        }
+        #detectionData {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Video Stream with Detection</h1>
+    <img id="videoStream" alt="Video stream will appear here">
+
+    <h2>Detection Data:</h2>
+    <div id="detectionData">No data received yet.</div>
+
+    <script>
+        const videoElement = document.getElementById('videoStream');
+        const detectionDataElement = document.getElementById('detectionData');
+        const socket = new WebSocket('ws://localhost:8765');
+
+        socket.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+
+            // Update the video stream
+            const frameData = 'data:image/jpeg;base64,' + data.frame;
+            videoElement.src = frameData;
+
+            // Update the detection data display
+            updateDetectionData(data.detections);
+            //print the data
+            console.log(data.detections);
+        };
+
+        socket.onopen = function() {
+            console.log('WebSocket connection opened');
+        };
+
+        socket.onclose = function() {
+            console.log('WebSocket connection closed');
+        };
+
+        socket.onerror = function(error) {
+            console.error('WebSocket error:', error);
+        };
+
+        function updateDetectionData(detections) {
+            if (detections.length === 0) {
+                detectionDataElement.innerHTML = 'No detections.';
+            } else {
+                const detectionInfo = detections.map(detection => `
+                    <div>
+                        <strong>Class:</strong> ${detection.class}<br>
+                        <strong>Confidence:</strong> ${detection.confidence.toFixed(2)}<br>
+                        <strong>Box:</strong> [${detection.box.join(', ')}]
+                    </div>
+                `).join('<hr>');
+
+                detectionDataElement.innerHTML = detectionInfo;
+            }
+        }
+    </script>
+</body>
+</html>
